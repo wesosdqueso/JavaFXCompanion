@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+ <extension point="org.eclipse.core.runtime.applications" id="smoke"><application><run class="org.javafxcompanion.tests.SmokeApplication"/></application></extension>
+ <extension point="org.eclipse.core.runtime.applications" id="visual"><application><run class="org.javafxcompanion.tests.VisualSmokeApplication"/></application></extension>
+ <extension point="org.eclipse.core.runtime.applications" id="editor"><application><run class="org.javafxcompanion.tests.EditorSmokeApplication"/></application></extension>
+</plugin>

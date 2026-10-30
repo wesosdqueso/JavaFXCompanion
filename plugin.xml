@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+ <extension point="org.eclipse.ui.editors">
+  <editor id="org.javafxcompanion.fxmlEditor" name="FXML + Scene Builder"
+      icon="icons/page_white_code_red.png"
+      extensions="fxml" default="true"
+      class="org.javafxcompanion.FxmlSceneEditor">
+   <contentTypeBinding contentTypeId="org.eclipse.fx.ide.fxml.file"/>
+  </editor>
+ </extension>
+ <extension point="org.eclipse.ui.startup">
+  <startup class="org.javafxcompanion.FxmlDefaultEditorStartup"/>
+ </extension>
+ <extension point="org.eclipse.ui.navigator.navigatorContent">
+  <navigatorContent id="org.javafxcompanion.fxmlContent"
+      name="JavaFX: FXML junto a sus controladores" activeByDefault="true"
+      priority="highest" contentProvider="org.javafxcompanion.FxmlNavigatorContentProvider"
+      labelProvider="org.javafxcompanion.FxmlNavigatorLabelProvider">
+   <triggerPoints><or>
+    <instanceof value="org.eclipse.jdt.core.IJavaElement"/>
+    <instanceof value="org.eclipse.core.resources.IResource"/>
+   </or></triggerPoints>
+   <possibleChildren><instanceof value="org.eclipse.core.resources.IFile"/></possibleChildren>
+   <commonSorter id="org.javafxcompanion.nameSorter" class="org.javafxcompanion.JavaFxNameSorter">
+    <parentExpression><instanceof value="org.eclipse.jdt.core.IPackageFragment"/></parentExpression>
+   </commonSorter>
+   <override suppressedExtensionId="org.eclipse.jdt.java.ui.javaContent"
+       policy="InvokeOnlyIfSuppressedExtAlsoVisibleAndActive"/>
+  </navigatorContent>
+ </extension>
+ <extension point="org.eclipse.ui.navigator.viewer">
+  <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+   <includes><contentExtension pattern="org.javafxcompanion.fxmlContent"/></includes>
+  </viewerContentBinding>
+ </extension>
+ <extension point="org.eclipse.ui.views">
+  <category id="org.javafxcompanion.category" name="JavaFX"/>
+  <view id="org.javafxcompanion.controllers"
+        name="JavaFX Controllers" category="org.javafxcompanion.category"
+        class="org.javafxcompanion.ControllersView" restorable="true"/>
+ </extension>
+</plugin>

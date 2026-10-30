@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.javafxcompanion.feature" label="JavaFX Companion" version="0.3.3.qualifier">
+ <description>Muestra los FXML junto a sus controladores Java en una vista independiente.</description>
+ <plugin id="org.javafxcompanion" download-size="0" install-size="0" version="0.0.0" unpack="false"/>
+</feature>

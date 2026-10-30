@@ -1,0 +1,8 @@
+/bin/
+/build/
+/target/
+/lib/
+/native/
+/third-party/javafx/
+/tools/restore-profile-registry.py
+/tests/RepairProfileApplication.java
