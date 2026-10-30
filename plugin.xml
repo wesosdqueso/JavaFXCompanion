@@ -14,7 +14,7 @@
  </extension>
  <extension point="org.eclipse.ui.navigator.navigatorContent">
   <navigatorContent id="org.javafxcompanion.fxmlContent"
-      name="JavaFX: FXML junto a sus controladores" activeByDefault="true"
+      name="JavaFX: FXML alongside controllers" activeByDefault="true"
       priority="highest" contentProvider="org.javafxcompanion.FxmlNavigatorContentProvider"
       labelProvider="org.javafxcompanion.FxmlNavigatorLabelProvider">
    <triggerPoints><or>

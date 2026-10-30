@@ -1,61 +1,64 @@
 # JavaFX Companion
 
-Plugin independiente para Eclipse que integra Scene Builder 26 en un editor FXML con dos pestañas y muestra los FXML junto a sus controladores Java en Project Explorer.
+An independent Eclipse PDE plugin that embeds Scene Builder 26 in a dual-page FXML editor and displays FXML files alongside their Java controllers in Project Explorer.
 
-**Estado:** versión inicial en desarrollo (0.3.3). **Plataforma:** Windows x64, Eclipse con JDT y Java 24 o posterior; probado con Eclipse 2026-12 M1 y Java 25. Los controles personalizados del proyecto todavía no se cargan automáticamente.
+**Status:** early development (0.3.3). **Requirements:** Windows x64, Eclipse with JDT, and Java 24 or later. Tested with Eclipse 2026-12 M1 and Java 25.
 
-El repositorio contiene el código y los proyectos PDE. Las bibliotecas JavaFX/Scene Builder, los instalables generados y los archivos locales de pruebas están excluidos de Git. Los scripts de compilación actuales usan rutas del entorno original: hay que adaptarlas para compilar en otra máquina.
+The repository contains source code and PDE projects. Generated libraries, installers, and local test data are excluded from Git. The build scripts currently use paths from the original development environment; adjust them before building on another machine.
 
-Licencia del código: MIT. Bibliotecas e iconos: ver [avisos de terceros](third-party/NOTICE.md).
+Project code is licensed under MIT. See [third-party notices](third-party/NOTICE.md) for library and icon licenses.
 
-Plugin PDE independiente para Eclipse. No depende de CodexIDE, e(fx)clipse ni del SDK JavaFX.
+## Embedded FXML editor
 
-## Editor integrado (0.3.0)
+Right-click an FXML file and select **Open With > FXML + Scene Builder**. The editor provides two pages:
 
-Abrir un FXML con Open With > FXML + Scene Builder. El editor tiene Código FXML y Diseño. La pestaña Diseño usa Scene Builder Kit 26 con biblioteca de controles, jerarquía, lienzo e inspector. Se sincroniza al entrar en Diseño; las ediciones visuales actualizan el documento y se guardan con Ctrl+S. Ctrl+Z/Ctrl+Y dentro del diseñador usan su historial. Si el FXML es inválido, se conserva el código y se muestra el error en lugar de un diseño anterior.
+- **FXML Source:** reuses the e(fx)clipse FXML editor when available, with a plain-text fallback.
+- **Design:** embeds Scene Builder Kit 26 with a control library, hierarchy, canvas, and property inspector.
 
-Requiere Windows x64 y que Eclipse se ejecute con Java 24 o posterior (probado con Java 25). JavaFX 26 y Scene Builder están incluidos en el instalable; no cambia la versión JavaFX de los proyectos. La pestaña de código reutiliza el editor FXML de e(fx)clipse si está disponible; en caso contrario ofrece texto plano.
+Switching to Design loads the current source. Visual edits update the document and can be saved with Ctrl+S. Ctrl+Z and Ctrl+Y use the designer's undo history while working in Design. Invalid FXML is preserved and an error replaces the previous design.
 
-Para establecerlo como editor habitual: Preferences > General > Editors > File Associations > *.fxml > FXML + Scene Builder > Default. Cerrar y reabrir los FXML ya abiertos.
+JavaFX 26 and Scene Builder are bundled in the installer. They do not change the JavaFX version used by your projects. CodexIDE and e(fx)clipse are not required.
 
-Esta primera integración se centra en controles JavaFX estándar y recursos relativos al FXML. No configura automáticamente las dependencias del proyecto como bibliotecas de controles personalizados. El diseñador puede reformatear el XML al editarlo.
+To choose the default editor, use **Preferences > General > Editors > File Associations > *.fxml > FXML + Scene Builder > Default**. Close and reopen existing FXML tabs. Version 0.3.3 also performs a one-time migration of editor associations for FXML files in open projects.
 
-## Project Explorer (0.2.0)
+This initial integration supports standard JavaFX controls and resources relative to the FXML file. Project dependencies are not automatically imported as custom-control libraries. Visual editing may reformat the XML.
 
-Los FXML con `fx:controller` resoluble aparecen en el paquete Java del controlador dentro de Project Explorer. Desde 0.2.2 también permanecen visibles en su carpeta original de resources: ambas entradas abren el mismo archivo, sin copiarlo ni moverlo. Los recursos restantes y FXML sin controlador resoluble permanecen donde estaban.
+## Project Explorer integration
 
-La contribución está activada por defecto. Se puede activar o desactivar en el menú de Project Explorer > Filters and Customization (o Customize View) > Content > JavaFX: FXML junto a sus controladores. Requiere que el contenido Java de JDT esté activo. No modifica Package Explorer. Las carpetas originales pueden permanecer visibles aunque ya no muestren FXML.
+FXML files with a resolvable `fx:controller` appear in their controller's Java package. They remain visible in their original resources folder as well. Both entries open the same file; files are never copied or moved. Java and FXML files are sorted together by base name, with the Java class first.
 
-## Desarrollo
+The integration is enabled by default. Toggle it under **Project Explorer > Filters and Customization (or Customize View) > Content > JavaFX: FXML alongside controllers**. JDT Java content must also be enabled. Package Explorer is not modified.
 
-1. File > Import > General > Existing Projects into Workspace.
-2. Seleccionar `D:\eclipse\repos\JavaFXCompanion`.
-3. Usar como plataforma destino un Eclipse con JDT y PDE (la instalación local los incluye).
-4. Run As > Eclipse Application desde el proyecto.
-5. En el Eclipse de prueba: Window > Show View > Other > JavaFX > JavaFX Controllers.
+The optional **JavaFX Controllers** view groups controllers and their FXML files by project and package. Open it through **Window > Show View > Other > JavaFX > JavaFX Controllers**. Double-click to open files; the view refreshes after workspace changes. Paths distinguish FXML files with duplicate names.
 
-La vista agrupa por proyecto y paquete los controladores Java y sus FXML. Abre los archivos con doble clic y actualiza las asociaciones tras cambios en el workspace. Los archivos mantienen su ubicación original. Varios FXML pueden compartir controlador; sus rutas permiten distinguir nombres repetidos.
+In the standalone view, FXML files with missing controllers, incomplete XML, or unresolved Java types appear under **FXML without resolved controller**. Derived resources and hidden folders are skipped. Controllers assigned exclusively through Java code using `setController` are not inferred.
 
-Los FXML sin `fx:controller`, con XML incompleto o con clases que JDT no puede resolver aparecen en un grupo separado. Se omiten recursos derivados y carpetas ocultas. Los controladores configurados únicamente desde Java mediante `setController` no se infieren.
+## Development
 
-La vista independiente JavaFX Controllers se conserva como alternativa y solo muestra clases vinculadas a FXML. La integración principal desde 0.2.0 funciona en Project Explorer.
+1. Import the repository using **File > Import > General > Existing Projects into Workspace**.
+2. Select an Eclipse target platform with JDT and PDE.
+3. Prepare the local dependencies described below.
+4. Select **Run As > Eclipse Application** from the plugin project.
+5. In the runtime workbench, open an FXML file with **FXML + Scene Builder**.
 
-## Compilación local
+### Local build
 
-Ejecutar `tools/build.ps1`. Compila contra los bundles activos de la instalación local y genera un JAR en `build`. Para preparar las dependencias en una copia nueva, `tools/prepare-editor.ps1` toma el SDK de `D:\eclipse\tools\javafx-26\javafx-sdk-26` y el JAR instalado de Scene Builder 26; incluye las licencias del SDK. Requiere JDK 24+ para compilar.
+Run `tools/build.ps1` to compile against the bundles in the configured local Eclipse installation and create a plugin JAR under `build`.
 
-## Generar e instalar el distribuible
+For a fresh checkout, `tools/prepare-editor.ps1` copies JavaFX SDK 26 and the installed Scene Builder 26 JAR into the generated dependency folders, including JavaFX license notices. Update the SDK, Scene Builder, Eclipse, and JDK paths in the scripts to match your environment. JDK 24 or later is required.
 
-Ejecutar `tools/release.ps1`: compila, asigna una versión, empaqueta el feature, genera los metadatos p2 con el publisher de Eclipse y crea un ZIP en `D:\eclipse\releases\javafxcompanion`.
+### Package and install
 
-En Eclipse: Help > Install New Software > Add > Archive, seleccionar el ZIP generado y desmarcar «Group items by category» si no aparece la lista. Seleccionar JavaFX Companion, continuar y reiniciar. Abrir Window > Show View > Other > JavaFX > JavaFX Controllers.
+Run `tools/release.ps1` to compile, assign a version, package the feature, generate p2 metadata using Eclipse's publisher, and create an installable ZIP. The current output location is configured in `tools/package-release.py`.
 
-El ZIP es un repositorio p2 instalable, no un ejecutable independiente. Requiere Eclipse con JDT. La generación del paquete no instala el plugin en el IDE principal.
+In Eclipse, select **Help > Install New Software > Add > Archive**, choose the generated ZIP, and select **JavaFX Companion**. If the list is empty, uncheck **Group items by category**. Complete the installation and restart Eclipse.
 
-## Verificación
+The ZIP is a p2 repository for Eclipse, not a standalone application. Packaging does not install the plugin into the development IDE.
 
-`tools/test.ps1` ejecuta pruebas dentro de Equinox con un workspace de prueba bajo `build`: resuelve una clase con JDT, verifica la contribución registrada, inserta el FXML en el paquete virtual, conserva recursos no asociados y comprueba la invalidación al cambiar el FXML. No sustituye la prueba visual del explorador.
+## Verification
 
-`tools/test.ps1 -Visual` abre y captura los paneles de Scene Builder sobre FXCanvas y comprueba la carga/serialización de FXML. `tools/test.ps1 -Editor` abre un workbench aislado y verifica ambas direcciones de sincronización, edición mediante un job de Scene Builder, estado modificado, guardado y conservación de FXML inválido. Ninguna prueba usa el workspace principal.
+- `tools/test.ps1`: runs association checks in Equinox, including JDT controller lookup, navigator registration, virtual package entries, filename sorting, and cache invalidation.
+- `tools/test.ps1 -Visual`: opens Scene Builder panels on FXCanvas and checks FXML loading and serialization.
+- `tools/test.ps1 -Editor`: opens a test workbench and checks source/design synchronization, visual editing, dirty state, saving, and preservation of invalid source.
 
-Las pruebas deben usar un área p2 y perfil propios (`build/isolated-p2`, `JavaFXCompanionIsolatedTests`), además del workspace separado. No basta con cambiar `-data` y `-configuration`: copiar el `config.ini` sin cambiar `eclipse.p2.data.area` y `eclipse.p2.profile` hace que el reconciliador de Eclipse modifique el perfil real.
+Tests use a separate workspace, configuration, p2 data area (`build/isolated-p2`), and profile (`JavaFXCompanionIsolatedTests`). Keep all four isolated: changing only `-data` and `-configuration` while retaining the main p2 settings can modify the real installation profile.

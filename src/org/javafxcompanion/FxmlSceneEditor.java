@@ -28,7 +28,7 @@ public final class FxmlSceneEditor extends MultiPageEditorPart {
     private boolean closed;
 
     @Override public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-        if (!(input instanceof FileEditorInput)) throw new PartInitException("El editor integrado requiere un archivo del workspace.");
+        if (!(input instanceof FileEditorInput)) throw new PartInitException("The embedded editor requires a workspace file.");
         super.init(site, input);
         setPartName(input.getName());
     }
@@ -52,17 +52,17 @@ public final class FxmlSceneEditor extends MultiPageEditorPart {
         try {
             source = createSourceEditor();
             int code = addPage(source, getEditorInput());
-            setPageText(code, "Código FXML");
+            setPageText(code, "FXML Source");
             designPage = new Composite(getContainer(), SWT.NONE);
             stack = new StackLayout();
             designPage.setLayout(stack);
             host = new Composite(designPage, SWT.NONE);
             host.setLayout(new FillLayout());
             error = new Label(designPage, SWT.WRAP);
-            error.setText("Selecciona Diseño para cargar Scene Builder.");
+            error.setText("Select Design to load Scene Builder.");
             stack.topControl = error;
             int visual = addPage(designPage);
-            setPageText(visual, "Diseño");
+            setPageText(visual, "Design");
             setActivePage(code);
         } catch (PartInitException e) {
             MessageDialog.openError(getSite().getShell(), "FXML + Scene Builder", e.getMessage());
@@ -95,7 +95,7 @@ public final class FxmlSceneEditor extends MultiPageEditorPart {
                 designValid = true;
                 stack.topControl = host;
             } catch (Exception | LinkageError e) {
-                error.setText("No se pudo cargar el diseño. El código se conserva.\n\n" + e.toString());
+                error.setText("Unable to load the design. Your source code has been preserved.\n\n" + e.toString());
                 stack.topControl = error;
                 Platform.getLog(getClass()).log(new Status(IStatus.ERROR, "org.javafxcompanion", "Scene Builder initialization failed", e));
             }
