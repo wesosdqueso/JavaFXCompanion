@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JavaFX Companion
 Bundle-SymbolicName: org.javafxcompanion;singleton:=true
-Bundle-Version: 0.3.3.qualifier
+Bundle-Version: 0.3.4.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-24
 Eclipse-PlatformFilter: (&(osgi.os=win32)(osgi.arch=x86_64))
 Bundle-ActivationPolicy: lazy

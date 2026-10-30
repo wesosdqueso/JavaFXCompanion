@@ -2,7 +2,7 @@
 
 An independent Eclipse PDE plugin that embeds Scene Builder 26 in a dual-page FXML editor and displays FXML files alongside their Java controllers in Project Explorer.
 
-**Status:** early development (0.3.3). **Requirements:** Windows x64, Eclipse with JDT, and Java 24 or later. Tested with Eclipse 2026-12 M1 and Java 25.
+**Status:** early development (0.3.4). **Requirements:** Windows x64, Eclipse with JDT, and Java 24 or later. Tested with Eclipse 2026-12 M1 and Java 25.
 
 The repository contains source code and PDE projects. Generated libraries, installers, and local test data are excluded from Git. The build scripts currently use paths from the original development environment; adjust them before building on another machine.
 
