@@ -90,12 +90,19 @@ public final class FxmlSceneEditor extends MultiPageEditorPart {
                     }
                 });
                 URL location = ((FileEditorInput) getEditorInput()).getFile().getLocationURI().toURL();
+                design.setProject(((FileEditorInput) getEditorInput()).getFile().getProject());
                 design.load(document().get(), location);
                 designBaseline = design.getFxml();
                 designValid = true;
                 stack.topControl = host;
             } catch (Exception | LinkageError e) {
-                error.setText("Unable to load the design. Your source code has been preserved.\n\n" + e.toString());
+                StringBuilder details = new StringBuilder();
+                java.util.Set<Throwable> causes = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+                for (Throwable cause = e; cause != null && causes.add(cause); cause = cause.getCause()) {
+                    if (!details.isEmpty()) details.append("\nCaused by: ");
+                    details.append(cause);
+                }
+                error.setText("Unable to load the design. Your source code has been preserved.\n\n" + details);
                 stack.topControl = error;
                 Platform.getLog(getClass()).log(new Status(IStatus.ERROR, "org.javafxcompanion", "Scene Builder initialization failed", e));
             }

@@ -34,10 +34,4 @@
    <includes><contentExtension pattern="org.javafxcompanion.fxmlContent"/></includes>
   </viewerContentBinding>
  </extension>
- <extension point="org.eclipse.ui.views">
-  <category id="org.javafxcompanion.category" name="JavaFX"/>
-  <view id="org.javafxcompanion.controllers"
-        name="JavaFX Controllers" category="org.javafxcompanion.category"
-        class="org.javafxcompanion.ControllersView" restorable="true"/>
- </extension>
 </plugin>

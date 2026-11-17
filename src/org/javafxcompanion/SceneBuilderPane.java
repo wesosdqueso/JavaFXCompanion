@@ -27,6 +27,15 @@ public final class SceneBuilderPane {
     private boolean disposed;
     private int generation;
     private final Consumer<String> changed;
+    private ProjectDesignLibrary projectLibrary;
+
+    public void setProject(org.eclipse.core.resources.IProject project)
+            throws org.eclipse.core.runtime.CoreException, java.io.IOException {
+        var next = new ProjectDesignLibrary(project);
+        controller.setLibrary(next);
+        if (projectLibrary != null) projectLibrary.close();
+        projectLibrary = next;
+    }
 
     public SceneBuilderPane(Composite parent, Consumer<String> changed) {
         this(parent, changed, () -> {});
@@ -62,6 +71,12 @@ public final class SceneBuilderPane {
             disposed = true;
             generation++;
             controller.stopFileWatching();
+            if (projectLibrary != null) {
+                try { projectLibrary.close(); }
+                catch (java.io.IOException e) {
+                    org.eclipse.core.runtime.Platform.getLog(getClass()).error("Unable to close project design classpath", e);
+                }
+            }
             canvas.setScene(null);
         });
     }
@@ -69,10 +84,17 @@ public final class SceneBuilderPane {
     public void load(String fxml, URL location) throws java.io.IOException {
         loading = true;
         generation++;
+        Thread thread = Thread.currentThread();
+        ClassLoader previous = thread.getContextClassLoader();
         try {
+            ClassLoader loader = controller.getLibrary().getClassLoader();
+            thread.setContextClassLoader(loader == null ? getClass().getClassLoader() : loader);
             controller.setFxmlTextAndLocation(fxml, location);
             controller.clearUndoRedo();
-        } finally { loading = false; }
+        } finally {
+            thread.setContextClassLoader(previous);
+            loading = false;
+        }
     }
 
     public String getFxml() { return controller.canGetFxmlText() ? controller.getFxmlText(false) : null; }

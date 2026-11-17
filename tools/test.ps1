@@ -19,6 +19,7 @@ New-Item -ItemType Directory -Force "$config\org.eclipse.equinox.simpleconfigura
 $installation = 'D:\eclipse\installations\eclipse-2026-12'
 Copy-Item "$installation\configuration\config.ini" "$config\config.ini" -Force
 $testConfigText = [IO.File]::ReadAllText("$config\config.ini")
+$testConfigText = [regex]::Replace($testConfigText, '(?m)^org\.eclipse\.equinox\.simpleconfigurator\.configUrl=.*$', 'org.eclipse.equinox.simpleconfigurator.configUrl=' + ([uri]"$config\org.eclipse.equinox.simpleconfigurator\bundles.info").AbsoluteUri)
 $testConfigText = [regex]::Replace($testConfigText, '(?m)^eclipse\.p2\.data\.area=.*$', 'eclipse.p2.data.area=' + ([uri]"$build\isolated-p2\").AbsoluteUri)
 $testConfigText = [regex]::Replace($testConfigText, '(?m)^eclipse\.p2\.profile=.*$', 'eclipse.p2.profile=JavaFXCompanionIsolatedTests')
 [IO.File]::WriteAllText("$config\config.ini", $testConfigText)

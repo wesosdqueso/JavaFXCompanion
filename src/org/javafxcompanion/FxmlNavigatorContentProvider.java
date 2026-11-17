@@ -1,5 +1,8 @@
 package org.javafxcompanion;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -49,14 +52,16 @@ public final class FxmlNavigatorContentProvider implements IPipelinedTreeContent
             project.accept(resource -> {
                 if (resource.isDerived() || resource.getName().startsWith(".")) return false;
                 if (resource instanceof IFile file && "fxml".equalsIgnoreCase(file.getFileExtension())) {
-                    String controller = ControllersView.readController(file);
+                    String controller = readController(file);
                     IType type = controller == null ? null : javaProject.findType(controller);
+                    IPackageFragment pkg = null;
                     if (type != null && type.getCompilationUnit() != null
                             && project.equals(type.getJavaProject().getProject())) {
-                        IPackageFragment pkg = type.getPackageFragment();
-                        // A file already in its controller's package needs no reshaping.
-                        if (!file.getParent().equals(pkg.getResource())) result.put(file, pkg);
+                        pkg = type.getPackageFragment();
                     }
+                    if (pkg == null) pkg = matchingPackage(javaProject, file);
+                    // Keep physical resources and add a virtual entry in the Java package.
+                    if (pkg != null && !file.getParent().equals(pkg.getResource())) result.put(file, pkg);
                     return false;
                 }
                 return true;
@@ -65,6 +70,54 @@ public final class FxmlNavigatorContentProvider implements IPipelinedTreeContent
             org.eclipse.core.runtime.Platform.getLog(getClass()).log(e.getStatus());
         }
         return result;
+    }
+
+    /** Match source-relative resource paths, independent of the FXML controller. */
+    static IPackageFragment matchingPackage(IJavaProject project, IFile file) throws JavaModelException {
+        IPackageFragmentRoot resourceRoot = null;
+        for (IPackageFragmentRoot root : project.getPackageFragmentRoots()) {
+            if (root.getKind() == IPackageFragmentRoot.K_SOURCE
+                    && project.equals(root.getJavaProject())
+                    && root.getPath().isPrefixOf(file.getFullPath())
+                    && (resourceRoot == null || root.getPath().segmentCount() > resourceRoot.getPath().segmentCount())) {
+                resourceRoot = root;
+            }
+        }
+        if (resourceRoot == null) return null;
+        String packageName = file.getParent().getFullPath().makeRelativeTo(resourceRoot.getPath())
+                .toString().replace('/', '.');
+        for (IPackageFragmentRoot root : project.getPackageFragmentRoots()) {
+            if (root.getKind() != IPackageFragmentRoot.K_SOURCE || root.equals(resourceRoot)
+                    || !project.equals(root.getJavaProject())) continue;
+            IPackageFragment pkg = root.getPackageFragment(packageName);
+            if (pkg.exists() && pkg.containsJavaResources()) return pkg;
+        }
+        return null;
+    }
+
+    private static String readController(IFile file) {
+        String declaration = readControllerDeclaration(file);
+        return declaration == null || declaration.isBlank() ? null : declaration;
+    }
+
+    /** Null means unreadable XML; empty means valid XML without a controller. */
+    static String readControllerDeclaration(IFile file) {
+        try (var input = file.getContents()) {
+            var factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            var builder = factory.newDocumentBuilder();
+            builder.setErrorHandler(new org.xml.sax.helpers.DefaultHandler());
+            var root = builder.parse(input).getDocumentElement();
+            String value = root.getAttributeNS("http://javafx.com/fxml/1", "controller");
+            if (value.isBlank()) value = root.getAttributeNS("http://javafx.com/fxml", "controller");
+            return value.trim();
+        } catch (Exception e) {
+            // Incomplete FXML has no controller association while editing.
+            return null;
+        }
     }
 
     private static IProject project(Object element) {

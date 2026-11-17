@@ -21,7 +21,7 @@ JavaFX 26 and Scene Builder are bundled in the installer. They do not change the
 
 To choose the default editor, use **Preferences > General > Editors > File Associations > *.fxml > FXML + Scene Builder > Default**. Close and reopen existing FXML tabs. Version 0.3.3 also performs a one-time migration of editor associations for FXML files in open projects.
 
-This initial integration supports standard JavaFX controls and resources relative to the FXML file. Project dependencies are not automatically imported as custom-control libraries. Visual editing may reformat the XML.
+Design loads compiled custom controls and dependencies from the Eclipse project's resolved Java build path, including referenced projects and resources. Build the project before opening Design. Controls must work with the bundled JavaFX runtime and be constructible without starting the application. Project classes load on a classpath; changing the application's module declarations does not supply classes to the designer. Visual editing may reformat the XML.
 
 ## Project Explorer integration
 
@@ -29,9 +29,14 @@ FXML files with a resolvable `fx:controller` appear in their controller's Java p
 
 The integration is enabled by default. Toggle it under **Project Explorer > Filters and Customization (or Customize View) > Content > JavaFX: FXML alongside controllers**. JDT Java content must also be enabled. Package Explorer is not modified.
 
-The optional **JavaFX Controllers** view groups controllers and their FXML files by project and package. Open it through **Window > Show View > Other > JavaFX > JavaFX Controllers**. Double-click to open files; the view refreshes after workspace changes. Paths distinguish FXML files with duplicate names.
+FXML icons retain their normal appearance for a resolvable declared controller.
+A small gray folder marks files associated by package path without a declared
+controller; a yellow warning triangle marks a declared controller class that JDT
+cannot find. Filenames remain unchanged. The label provider supplies an explanatory
+tooltip and selection description for each state. Invalid or incomplete XML is
+left undecorated while editing.
 
-In the standalone view, FXML files with missing controllers, incomplete XML, or unresolved Java types appear under **FXML without resolved controller**. Derived resources and hidden folders are skipped. Controllers assigned exclusively through Java code using `setController` are not inferred.
+When no local controller can be resolved, FXML files also appear in a Java package with the same path relative to another source root (for example, `src/main/resources/demo/Custom.fxml` beside `src/main/java/demo/Custom.java`). Both folders must be on the Java build path and the destination package must contain Java sources. This also covers `fx:root` custom controls and FXML without controllers. A resolvable explicit `fx:controller` takes precedence over the path convention. Files without either match stay only in their physical location. Java calls to `setController` are not analyzed.
 
 ## Development
 
@@ -54,6 +59,28 @@ Run `tools/release.ps1` to compile, assign a version, package the feature, gener
 In Eclipse, select **Help > Install New Software > Add > Archive**, choose the generated ZIP, and select **JavaFX Companion**. If the list is empty, uncheck **Group items by category**. Complete the installation and restart Eclipse.
 
 The ZIP is a p2 repository for Eclipse, not a standalone application. Packaging does not install the plugin into the development IDE.
+
+### Automatic local updater
+
+Run `tools/build-update-launcher.ps1` once to create `build/Actualizar-JavaFXCompanion.exe`.
+Double-click that executable to compile the current sources, prepare a versioned p2
+repository, wait for Eclipse to close normally, install JavaFX Companion, and reopen
+`D:\eclipse\workspaces\2025`. Save your work and close Eclipse when prompted;
+the updater does not terminate Eclipse for you. It updates JavaFX Companion only.
+
+The launcher accepts `--workspace`, `--eclipse`, `--java`, and `--repo` path overrides.
+Use `--check` to validate paths without building or installing. Regenerate the
+launcher with `-Workspace`, `-EclipseHome`, and `-JavaHome` to change its defaults.
+Keep the executable in this repository's `build` directory.
+
+`tools/install-live.ps1 -PrepareOnly` compiles and publishes a local update site
+without changing the Eclipse installation. Its publisher uses a separate configuration,
+workspace, p2 data area, and profile. Output is stored in `build/update-site-*`;
+publisher and installer logs are in the matching `build/release-*` directory.
+To install from a terminal, run `tools/install-live.ps1 -WaitForExit -Restart -Workspace <path>`.
+The installer checks the installed bundle version before reopening Eclipse.
+Rollback is available under **Help > About Eclipse IDE > Installation Details >
+Installation History > Revert**.
 
 ## Verification
 

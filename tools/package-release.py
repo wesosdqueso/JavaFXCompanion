@@ -13,7 +13,8 @@ site = Path('D:/eclipse/releases/javafxcompanion') / version
 (site / 'plugins').mkdir(parents=True)
 (site / 'features').mkdir()
 with zipfile.ZipFile(root / 'build/org.javafxcompanion-dev.jar') as source:
-    assert 'org/javafxcompanion/ControllersView.class' in source.namelist()
+    assert 'org/javafxcompanion/FxmlNavigatorContentProvider.class' in source.namelist()
+    assert 'org/javafxcompanion/ControllersView.class' not in source.namelist()
     with zipfile.ZipFile(site / f'plugins/org.javafxcompanion_{version}.jar', 'w', zipfile.ZIP_DEFLATED) as target:
         for entry in source.infolist():
             data = source.read(entry.filename)

@@ -26,6 +26,54 @@ public final class VisualSmokeApplication implements IApplication {
             Path sample = Path.of("D:/eclipse/repos/JavaFXCompanion/build/visual-smoke.fxml");
             Files.writeString(sample, fxml);
             paneClass.getMethod("load", String.class, java.net.URL.class).invoke(pane, fxml, sample.toUri().toURL());
+            // A project-only control loads a nested FXML using FXMLLoader's default loader.
+            var project = org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot()
+                    .getProject("custom-control-" + System.currentTimeMillis());
+            project.create(null);
+            project.open(null);
+            var description = project.getDescription();
+            description.setNatureIds(new String[] { org.eclipse.jdt.core.JavaCore.NATURE_ID });
+            project.setDescription(description, null);
+            var javaProject = org.eclipse.jdt.core.JavaCore.create(project);
+            javaProject.setRawClasspath(new org.eclipse.jdt.core.IClasspathEntry[0],
+                    project.getFullPath().append("bin"), null);
+            Path outputDir = project.getLocation().toFile().toPath().resolve("bin");
+            Files.createDirectories(outputDir.resolve("custom"));
+            Path control = project.getLocation().toFile().toPath().resolve("CustomPane.java");
+            Files.writeString(control, """
+                    package custom;
+                    public class CustomPane extends javafx.scene.layout.VBox {
+                        public CustomPane() {
+                            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("inner.fxml"));
+                            loader.setRoot(this);
+                            loader.setController(this);
+                            try { loader.load(); } catch (java.io.IOException e) { throw new RuntimeException(e); }
+                        }
+                    }
+                    """);
+            var compiler = new ProcessBuilder("C:/Program Files/Java/jdk-25/bin/javac.exe", "-classpath",
+                    "D:/eclipse/repos/JavaFXCompanion/lib/*", "-d", outputDir.toString(), control.toString())
+                    .inheritIO().start();
+            if (compiler.waitFor() != 0) throw new AssertionError("Custom control compilation failed");
+            Files.writeString(outputDir.resolve("custom/inner.fxml"), """
+                    <?import javafx.scene.layout.VBox?>
+                    <?import javafx.scene.control.Label?>
+                    <fx:root type="VBox" xmlns:fx="http://javafx.com/fxml/1"><children><Label text="Nested custom content"/></children></fx:root>
+                    """);
+            project.refreshLocal(org.eclipse.core.resources.IResource.DEPTH_INFINITE, null);
+            paneClass.getMethod("setProject", org.eclipse.core.resources.IProject.class).invoke(pane, project);
+            String customFxml = """
+                    <?import javafx.scene.control.TabPane?>
+                    <?import javafx.scene.control.Tab?>
+                    <?import custom.CustomPane?>
+                    <TabPane xmlns:fx="http://javafx.com/fxml/1"><tabs><Tab text="Scripts"><content><CustomPane fx:id="scriptEditor"/></content></Tab></tabs></TabPane>
+                    """;
+            paneClass.getMethod("load", String.class, java.net.URL.class).invoke(pane, customFxml, sample.toUri().toURL());
+            String customOutput = (String) paneClass.getMethod("getFxml").invoke(pane);
+            if (!customOutput.contains("CustomPane") || !customOutput.contains("scriptEditor"))
+                throw new AssertionError("Custom control round trip failed");
+            System.out.println("PASS: Project custom control in Tab with nested FXML and round trip");
+            paneClass.getMethod("load", String.class, java.net.URL.class).invoke(pane, fxml, sample.toUri().toURL());
             shell.open();
             display.timerExec(5000, () -> {
                 try {
